@@ -16,17 +16,44 @@ export default function TeddyMystery() {
   const [talkingTo, setTalkingTo] = useState<Character | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // 1. ROBUST INIT: Prevents white screen crashes
   useEffect(() => {
     async function initGame() {
       try {
         const res = await fetch('/api/start-game', { method: 'POST' });
+        
+        if (!res.ok) {
+           throw new Error(`Server Error: ${res.status}`);
+        }
+
         const data = await res.json();
+        
+        // Safety Check: Did we actually get characters?
+        if (!data || !data.characters || data.characters.length === 0) {
+           throw new Error("Invalid game data received");
+        }
+
         setGame(data);
+        
+        // Find Sheriff safely
         const sheriff = data.characters.find((c: Character) => c.role.toLowerCase().includes("sheriff")) || data.characters[0];
         setTalkingTo(sheriff);
-        setMessages([{ role: 'assistant', content: `(Sheriff ${sheriff.name} tips his hat) "Detective! Thank goodness you're here. We have a situation. ${data.victim} was found... un-stuffed. It's tragic. Ask me anything, or talk to the suspects."`, speaker: sheriff.name }]);
+        
+        setMessages([{ 
+          role: 'assistant', 
+          content: `(Sheriff ${sheriff.name} tips his hat) "Detective! Thank goodness you're here. We have a situation. ${data.victim} was found... un-stuffed. It's tragic. Ask me anything, or talk to the suspects."`, 
+          speaker: sheriff.name 
+        }]);
+
       } catch (e) {
-        console.error(e);
+        console.error("Game Load Error:", e);
+        // Fallback: Show error in chat instead of crashing the whole app
+        setMessages([{ 
+          role: 'system', 
+          content: "⚠️ Connection Error: Could not reach Teddy Town. Please check your API Key configuration or refresh the page." 
+        }]);
+        // Set a dummy empty state so the UI still renders
+        setGame({ storyTitle: "Connection Error", victim: "Unknown", solution: "", characters: [], clues: [], currentLocation: "" });
       } finally {
         setLoading(false);
       }
@@ -34,6 +61,7 @@ export default function TeddyMystery() {
     initGame();
   }, []);
 
+  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
@@ -50,10 +78,13 @@ export default function TeddyMystery() {
         method: 'POST',
         body: JSON.stringify({ messages: [...messages, userMsg], currentCharacter: talkingTo, gameState: game })
       });
+      
+      if (!res.ok) throw new Error("Chat error");
+      
       const data = await res.json();
       setMessages((prev) => [...prev, { role: 'assistant', content: data.response, speaker: talkingTo.name }]);
     } catch (error) {
-      setMessages((prev) => [...prev, { role: 'system', content: "The bear seems confused..." }]);
+      setMessages((prev) => [...prev, { role: 'system', content: "The bear seems confused... (Network Error)" }]);
     } finally {
       setIsTyping(false);
     }
@@ -174,14 +205,14 @@ export default function TeddyMystery() {
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 uppercase tracking-tighter">
             <Book size={20} /> Case Files
           </h2>
-          <p className="text-xs text-slate-500 mt-1">Property of Detective {game?.characters.find(c=>c.role.includes("Sheriff"))?.name || "Bear"}</p>
+          <p className="text-xs text-slate-500 mt-1">Property of Detective {game?.characters?.find(c=>c.role.includes("Sheriff"))?.name || "Bear"}</p>
         </div>
 
         {/* Suspects */}
         <div className="flex-1 overflow-y-auto custom-scrollbar notebook-paper p-6 pt-2">
            <h3 className="font-bold underline mb-4 mt-4 decoration-amber-500/50 decoration-wavy">Suspects</h3>
            <div className="space-y-3">
-            {game?.characters.map((char) => (
+            {game?.characters?.map((char) => (
               <button 
                 key={char.id}
                 onClick={() => handleSwitchCharacter(char)}
@@ -199,11 +230,12 @@ export default function TeddyMystery() {
                 {talkingTo?.id === char.id && <MapPin size={16} className="ml-auto text-amber-600" />}
               </button>
             ))}
+            {(!game?.characters || game.characters.length === 0) && <p className="text-xs italic">Loading suspects...</p>}
            </div>
 
            <h3 className="font-bold underline mb-4 mt-8 decoration-amber-500/50 decoration-wavy">Clues</h3>
            <ul className="list-disc pl-4 space-y-2 text-sm text-slate-700">
-             {game?.clues.map((clue, idx) => (
+             {game?.clues?.map((clue, idx) => (
                <li key={idx}>
                  <span className="bg-yellow-200/50 px-1">{clue.description}</span>
                </li>
