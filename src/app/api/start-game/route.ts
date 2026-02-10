@@ -9,7 +9,7 @@ export async function POST() {
   
   // Use gemini-1.5-flash for speed, or gemini-pro if region locked
   const model = genAI.getGenerativeModel({ 
-    model: "gemini-2.5-flash",
+    model: "gemini-flash-latest",
     generationConfig: { responseMimeType: "application/json" } 
   });
 
