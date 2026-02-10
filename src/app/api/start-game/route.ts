@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+export const maxDuration = 60; 
+export const dynamic = 'force-dynamic';
+
 export async function POST() {
   const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
   
