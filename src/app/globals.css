@@ -1,26 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Special+Elite&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
 }
+
+/* --- CUSTOM TEDDY STYLES --- */
+
+/* Cozy Font for Dialogue */
+.font-hand { font-family: 'Patrick Hand', cursive; }
+/* Typewriter Font for Notebook */
+.font-typewriter { font-family: 'Special Elite', monospace; }
+
+/* Notebook Paper Effect */
+.notebook-paper {
+  background-color: #fdf6e3;
+  background-image: linear-gradient(#e1d9c5 1px, transparent 1px);
+  background-size: 100% 1.5rem;
+  line-height: 1.5rem;
+  box-shadow: 5px 0 10px rgba(0,0,0,0.1) inset;
+}
+
+/* Animations */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+.animate-breathe { animation: breathe 3s infinite ease-in-out; }
+
+@keyframes blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+.animate-blink { animation: blink 4s infinite; }
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #d97706; border-radius: 4px; }
